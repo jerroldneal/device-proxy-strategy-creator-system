@@ -156,14 +156,14 @@ export default function QuickActionModal({ type, initialValues, onClose }: Quick
               />
               <span className="px-2 text-gray-500">%</span>
               <div className="flex flex-col border-l">
-                <button 
+                <button
                   onClick={() => setPercentage((prev) => (parseFloat(prev || '0') + 0.01).toFixed(2))}
                   className="px-3 py-0.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-b"
                   type="button"
                 >
                   ▲
                 </button>
-                <button 
+                <button
                   onClick={() => setPercentage((prev) => Math.max(0, parseFloat(prev || '0') - 0.01).toFixed(2))}
                   className="px-3 py-0.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold"
                   type="button"

@@ -12,14 +12,15 @@ interface Strategy {
     symbol: string;
     side: string;
     size: string;
-    stopPrice?: string;
-    targetPrice?: string;
+    stopPrice?: string | number;
+    targetPrice?: string | number;
     strategyName?: string;
   };
 }
 
 export default function ActiveStrategiesList() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [tickers, setTickers] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -27,9 +28,22 @@ export default function ActiveStrategiesList() {
 
   const fetchStrategies = async () => {
     try {
-      const res = await api.get('/maker/list');
-      if (res.error) throw new Error(res.error);
-      setStrategies(res.strategies || []);
+      const [resStrategies, resTickers] = await Promise.all([
+        api.get('/maker/list'),
+        api.get('/blofin/tickers')
+      ]);
+
+      if (resStrategies.error) throw new Error(resStrategies.error);
+      setStrategies(resStrategies.strategies || []);
+
+      const tickerMap: any = {};
+      if (resTickers.data) {
+        resTickers.data.forEach((t: any) => {
+          tickerMap[t.symbol] = parseFloat(t.last);
+        });
+      }
+      setTickers(tickerMap);
+
       setError(null);
     } catch (err: any) {
       console.error('Error fetching strategies:', err);
@@ -113,6 +127,8 @@ export default function ActiveStrategiesList() {
                   <th className="py-2 px-4 border-b text-left">Side</th>
                   <th className="py-2 px-4 border-b text-left">Size</th>
                   <th className="py-2 px-4 border-b text-left">Trigger</th>
+                  <th className="py-2 px-4 border-b text-left">Current</th>
+                  <th className="py-2 px-4 border-b text-left">Distance</th>
                   <th className="py-2 px-4 border-b text-left">Status</th>
                   <th className="py-2 px-4 border-b text-left">Actions</th>
                 </tr>
@@ -120,12 +136,23 @@ export default function ActiveStrategiesList() {
               <tbody>
                 {displayedStrategies.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-4 px-4 text-center text-gray-500">
+                    <td colSpan={9} className="py-4 px-4 text-center text-gray-500">
                       No {activeTab} strategies
                     </td>
                   </tr>
                 ) : (
-                  displayedStrategies.map((s) => (
+                  displayedStrategies.map((s) => {
+                    const currentPrice = tickers[s.config.symbol];
+                    const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) : 
+                                         s.config.targetPrice !== undefined ? parseFloat(s.config.targetPrice as string) : null;
+                    
+                    let distance = '-';
+                    if (currentPrice && triggerPrice) {
+                      const dist = Math.abs((currentPrice - triggerPrice) / currentPrice * 100);
+                      distance = `${dist.toFixed(2)}%`;
+                    }
+
+                    return (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="py-2 px-4 border-b">
                         <div className="font-medium">{getStrategyType(s)}</div>
@@ -139,8 +166,13 @@ export default function ActiveStrategiesList() {
                       </td>
                       <td className="py-2 px-4 border-b">{s.config.size}</td>
                       <td className="py-2 px-4 border-b">
-                        {s.config.stopPrice ? parseFloat(s.config.stopPrice).toFixed(4) :
-                        s.config.targetPrice ? parseFloat(s.config.targetPrice).toFixed(4) : '-'}
+                        {triggerPrice ? triggerPrice.toFixed(4) : '-'}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {currentPrice ? currentPrice.toFixed(4) : '-'}
+                      </td>
+                      <td className="py-2 px-4 border-b">
+                        {distance}
                       </td>
                       <td className="py-2 px-4 border-b">
                         {s.running ? (
@@ -160,7 +192,8 @@ export default function ActiveStrategiesList() {
                         )}
                       </td>
                     </tr>
-                  ))
+                  );
+                  })
                 )}
               </tbody>
             </table>
