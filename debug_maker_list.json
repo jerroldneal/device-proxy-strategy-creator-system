@@ -1,0 +1,1 @@
+{"strategies":[{"id":"ed521e54-5e93-4aa2-a1f5-fec6c1a3b7b0","running":true,"config":{"type":"active-strategy","symbol":"BTC-USDT","timeframe":"1m","size":"0.01","strategyName":"RSI-40-60","lastSignal":{"timestamp":1765052640000,"signals":{"Buy Signal":false,"Sell Signal":true},"plots":{"RSI(14)":47.84},"context":{"timestamp":1765052640000,"price":89364.9,"RSI(14)":47.84}}}}]}

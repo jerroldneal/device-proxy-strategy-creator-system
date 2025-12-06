@@ -23,6 +23,7 @@ interface Strategy {
       current: number;
       condition: string;
       action: string;
+      description?: string;
     }>;
   };
 }
@@ -34,6 +35,7 @@ export default function ActiveStrategiesList() {
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active');
+  const [expandedStrategyId, setExpandedStrategyId] = useState<string | null>(null);
 
   const fetchStrategies = async () => {
     try {
@@ -43,6 +45,7 @@ export default function ActiveStrategiesList() {
       ]);
 
       if (resStrategies.error) throw new Error(resStrategies.error);
+      console.log('Strategies fetched:', resStrategies.strategies);
       setStrategies(resStrategies.strategies || []);
 
       const tickerMap: any = {};
@@ -76,6 +79,10 @@ export default function ActiveStrategiesList() {
     } catch (err) {
       alert('Failed to stop strategy');
     }
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedStrategyId(expandedStrategyId === id ? null : id);
   };
 
   const getStrategyType = (s: Strategy) => {
@@ -163,18 +170,16 @@ export default function ActiveStrategiesList() {
                     let triggerDisplay = '-';
                     let currentDisplay = '-';
                     let distanceDisplay = '-';
+                    let hasComplexTriggers = false;
 
                     if (s.status?.triggers && s.status.triggers.length > 0) {
-                      // Use dynamic triggers from backend
-                      triggerDisplay = s.status.triggers.map(t => `${t.metric} ${t.condition} ${t.target}`).join(', ');
-                      currentDisplay = s.status.triggers.map(t => `${t.metric}: ${t.current !== undefined ? t.current.toFixed(2) : '?'}`).join(', ');
-                      distanceDisplay = s.status.triggers.map(t => {
-                        if (t.current !== undefined && t.target !== undefined) {
-                           const dist = Math.abs(t.current - t.target);
-                           return `${dist.toFixed(2)}`;
-                        }
-                        return '?';
-                      }).join(', ');
+                      hasComplexTriggers = true;
+                      // Summary for main row
+                      const actions = new Set(s.status.triggers.map(t => t.action));
+                      triggerDisplay = `${actions.size} Actions (${s.status.triggers.length} Conditions)`;
+
+                      currentDisplay = 'See Details';
+                      distanceDisplay = '-';
                     } else {
                       // Fallback to Price Logic
                       const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) :
@@ -190,11 +195,24 @@ export default function ActiveStrategiesList() {
                       }
                     }
 
+                    const isExpanded = expandedStrategyId === s.id;
+
                     return (
-                    <tr key={s.id} className="hover:bg-gray-50">
+                    <React.Fragment key={s.id}>
+                    <tr className={`hover:bg-gray-50 ${isExpanded ? 'bg-blue-50' : ''}`}>
                       <td className="py-2 px-4 border-b">
-                        <div className="font-medium">{getStrategyType(s)}</div>
-                        <div className="text-xs text-gray-400">{s.id.substring(0, 8)}</div>
+                        <div className="flex items-center">
+                            <button
+                                onClick={() => toggleExpand(s.id)}
+                                className="mr-2 text-gray-500 hover:text-blue-600 focus:outline-none"
+                            >
+                                {isExpanded ? '▼' : '▶'}
+                            </button>
+                            <div>
+                                <div className="font-medium">{getStrategyType(s)}</div>
+                                <div className="text-xs text-gray-400">{s.id.substring(0, 8)}</div>
+                            </div>
+                        </div>
                       </td>
                       <td className="py-2 px-4 border-b">{s.config.symbol}</td>
                       <td className="py-2 px-4 border-b font-bold">
@@ -230,6 +248,55 @@ export default function ActiveStrategiesList() {
                         )}
                       </td>
                     </tr>
+                    {isExpanded && (
+                        <tr>
+                            <td colSpan={9} className="p-0 border-b">
+                                <div className="bg-gray-50 p-4 border-l-4 border-blue-500">
+                                    <h4 className="font-bold text-gray-700 mb-2">Strategy Breakdown</h4>
+                                    {hasComplexTriggers && s.status?.triggers ? (
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {Object.entries(s.status.triggers.reduce((acc, t) => {
+                                                if (!acc[t.action]) acc[t.action] = [];
+                                                acc[t.action].push(t);
+                                                return acc;
+                                            }, {} as Record<string, typeof s.status.triggers>)).map(([action, triggers]) => (
+                                                <div key={action} className="bg-white p-3 rounded shadow-sm border">
+                                                    <h5 className="font-bold text-blue-600 border-b pb-1 mb-2">{action}</h5>
+                                                    <table className="min-w-full text-sm">
+                                                        <thead>
+                                                            <tr className="text-gray-500 text-left">
+                                                                <th className="pb-1">Condition</th>
+                                                                <th className="pb-1">Target</th>
+                                                                <th className="pb-1">Current</th>
+                                                                <th className="pb-1">Distance</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {triggers.map((t, idx) => (
+                                                                <tr key={idx} className="border-t border-gray-100">
+                                                                    <td className="py-1 pr-2">{t.description || t.metric}</td>
+                                                                    <td className="py-1 pr-2">{t.target}</td>
+                                                                    <td className="py-1 pr-2 font-mono">{t.current !== undefined ? t.current.toFixed(2) : '?'}</td>
+                                                                    <td className="py-1 font-mono">
+                                                                        {t.current !== undefined && t.target !== undefined
+                                                                            ? Math.abs(t.current - t.target).toFixed(2)
+                                                                            : '-'}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-gray-500 italic">No complex trigger breakdown available.</div>
+                                    )}
+                                </div>
+                            </td>
+                        </tr>
+                    )}
+                    </React.Fragment>
                   );
                   })
                 )}
