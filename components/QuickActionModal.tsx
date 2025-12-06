@@ -88,6 +88,10 @@ export default function QuickActionModal({ type, initialValues, onClose }: Quick
     }
   };
 
+  const isEntry = type === 'enter-buy' || type === 'enter-sell';
+  const isRisk = type === 'sl' || type === 'tp' || type === 'ts';
+  const isClose = type === 'close';
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-gray-900">
       <div className="bg-white p-6 rounded-lg shadow-xl w-96">
@@ -96,54 +100,47 @@ export default function QuickActionModal({ type, initialValues, onClose }: Quick
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">×</button>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-1">Symbol</label>
-          <input
-            type="text"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1">
-            <label className="block text-sm font-bold mb-1">Side</label>
-            <select
-              value={positionSide}
-              onChange={(e) => setPositionSide(e.target.value)}
-              className="w-full border p-2 rounded"
-              disabled={type === 'enter-buy' || type === 'enter-sell' || type === 'close' || type === 'sl' || type === 'tp' || type === 'ts'}
-            >
-              <option value="long">Long</option>
-              <option value="short">Short</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-bold mb-1">Size</label>
-            <input
-              type="text"
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-              className="w-full border p-2 rounded"
-            />
-          </div>
-        </div>
-
-        {type !== 'close' && type !== 'enter-buy' && type !== 'enter-sell' && (
+        {isEntry && (
           <div className="mb-4">
-            <label className="block text-sm font-bold mb-1">Entry Price</label>
+            <label className="block text-sm font-bold mb-1">Symbol</label>
             <input
               type="text"
-              value={entryPrice}
-              onChange={(e) => setEntryPrice(e.target.value)}
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
               className="w-full border p-2 rounded"
-              placeholder="e.g. 50000"
             />
           </div>
         )}
 
-        {type !== 'close' && type !== 'enter-buy' && type !== 'enter-sell' && (
+        {(isEntry || isClose) && (
+          <div className="flex gap-4 mb-4">
+            {isEntry && (
+              <div className="flex-1">
+                <label className="block text-sm font-bold mb-1">Side</label>
+                <select
+                  value={positionSide}
+                  onChange={(e) => setPositionSide(e.target.value)}
+                  className="w-full border p-2 rounded"
+                  disabled
+                >
+                  <option value="long">Long</option>
+                  <option value="short">Short</option>
+                </select>
+              </div>
+            )}
+            <div className="flex-1">
+              <label className="block text-sm font-bold mb-1">Size</label>
+              <input
+                type="text"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className="w-full border p-2 rounded"
+              />
+            </div>
+          </div>
+        )}
+
+        {isRisk && (
           <div className="mb-4">
             <label className="block text-sm font-bold mb-1">
               {type === 'sl' ? 'Stop %' : type === 'tp' ? 'Profit %' : 'Trailing %'}
