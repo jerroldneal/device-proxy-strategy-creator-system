@@ -63,17 +63,17 @@ export default function RunStrategy({ analysisResult }: RunStrategyProps) {
         <div className="flex flex-wrap gap-4 items-end">
           <div>
             <label className="block text-sm font-bold mb-1">Symbol</label>
-            <input 
-              type="text" 
-              value={symbol} 
+            <input
+              type="text"
+              value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
               className="border p-2 rounded w-32"
             />
           </div>
           <div>
             <label className="block text-sm font-bold mb-1">Timeframe</label>
-            <select 
-              value={timeframe} 
+            <select
+              value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
               className="border p-2 rounded w-24"
             >
@@ -82,9 +82,9 @@ export default function RunStrategy({ analysisResult }: RunStrategyProps) {
           </div>
           <div>
             <label className="block text-sm font-bold mb-1">Lookback</label>
-            <input 
-              type="number" 
-              value={lookback} 
+            <input
+              type="number"
+              value={lookback}
               onChange={(e) => setLookback(parseInt(e.target.value))}
               className="border p-2 rounded w-20"
             />
@@ -92,8 +92,8 @@ export default function RunStrategy({ analysisResult }: RunStrategyProps) {
           <div>
             <label className="block text-sm font-bold mb-1">End Time</label>
             <div className="flex gap-1">
-              <select 
-                value={endTime} 
+              <select
+                value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 className="border p-2 rounded w-48"
               >
@@ -105,7 +105,7 @@ export default function RunStrategy({ analysisResult }: RunStrategyProps) {
               <button onClick={refreshTimestamps} className="px-2 border rounded hover:bg-gray-100">↻</button>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleRun}
             disabled={loading}
             className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-300"

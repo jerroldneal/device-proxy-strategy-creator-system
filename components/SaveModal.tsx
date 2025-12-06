@@ -23,7 +23,7 @@ export default function SaveModal({ onClose, input, json, pineScript, strategyCo
 
   const handleSave = async () => {
     if (!name.trim()) return alert('Name is required');
-    
+
     try {
       const body = {
         name,
@@ -33,7 +33,7 @@ export default function SaveModal({ onClose, input, json, pineScript, strategyCo
         type: 'major', // Explicit save is major
         baseVersion: strategyContext.version
       };
-      
+
       const data = await api.post('/strategies/save', body);
       if (data.status === 'saved') {
         setStrategyContext({
@@ -59,7 +59,7 @@ export default function SaveModal({ onClose, input, json, pineScript, strategyCo
           <h2 className="text-xl font-bold">Save Strategy</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">×</button>
         </div>
-        
+
         <p className="mb-2 text-gray-600">Enter a name for this strategy:</p>
         <input
           type="text"
@@ -69,7 +69,7 @@ export default function SaveModal({ onClose, input, json, pineScript, strategyCo
           className="w-full border p-2 rounded mb-6"
           autoFocus
         />
-        
+
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
           <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>

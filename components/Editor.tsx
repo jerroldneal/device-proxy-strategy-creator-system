@@ -56,7 +56,7 @@ export default function Editor({ input, setInput, onAnalyze, strategyContext, se
       }
       setInput(data.input);
       onAnalyze(data.json, data.pinescript); // Pre-load results but stay on editor? Or maybe just set state.
-      
+
       const meta = strategies.find(s => s.name === selectedStrategy);
       setStrategyContext({
         name: selectedStrategy,
@@ -118,7 +118,7 @@ if (shortCondition)
           <button onClick={() => loadTemplate('vague')} className="px-2 py-1 border border-purple-500 text-purple-500 rounded text-sm hover:bg-purple-50">✨ Generate</button>
         </div>
         <div className="flex gap-2 items-center">
-          <select 
+          <select
             className="border p-1 rounded"
             value={selectedStrategy}
             onChange={(e) => handleStrategySelect(e.target.value)}
@@ -149,9 +149,9 @@ if (shortCondition)
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
-      
+
       <div className="mt-4">
-        <button 
+        <button
           onClick={handleAnalyze}
           disabled={loading}
           className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300"
