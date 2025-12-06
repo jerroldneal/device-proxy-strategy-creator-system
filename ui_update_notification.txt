@@ -1,0 +1,5 @@
+UI Updated:
+- Quick Actions, Open Positions, and Strategies sections are now collapsible.
+- "Active Strategies" renamed to "Strategies".
+- Added "Active" and "Inactive" tabs to the Strategies section.
+- Strategies are filtered by running status.

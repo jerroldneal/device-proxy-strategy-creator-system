@@ -17,7 +17,7 @@ export default function Results({ input, result, pineScript, onBack, onRun, stra
   const [showSaveModal, setShowSaveModal] = useState(false);
 
   return (
-    <div>
+    <div className="text-gray-900">
       <div className="mb-4 flex gap-4">
         <button onClick={onBack} className="px-4 py-2 border rounded hover:bg-gray-50">← Back to Editor</button>
         <button onClick={() => setShowSaveModal(true)} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save Strategy</button>

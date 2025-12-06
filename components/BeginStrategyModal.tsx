@@ -64,7 +64,7 @@ export default function BeginStrategyModal({ onClose }: BeginStrategyModalProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-gray-900">
       <div className="bg-white p-6 rounded-lg shadow-xl w-96">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Begin Strategy</h2>
@@ -119,8 +119,8 @@ export default function BeginStrategyModal({ onClose }: BeginStrategyModalProps)
 
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-          <button 
-            onClick={handleStart} 
+          <button
+            onClick={handleStart}
             disabled={loading}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
           >

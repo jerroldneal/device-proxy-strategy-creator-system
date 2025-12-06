@@ -57,7 +57,7 @@ export default function RunStrategy({ analysisResult }: RunStrategyProps) {
   };
 
   return (
-    <div>
+    <div className="text-gray-900">
       <div className="p-4 border-b mb-4">
         <h3 className="text-lg font-bold mb-4">Run & Manage Strategy</h3>
         <div className="flex flex-wrap gap-4 items-end">

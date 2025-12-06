@@ -108,7 +108,7 @@ if (shortCondition)
   };
 
   return (
-    <div>
+    <div className="text-gray-900">
       <div className="mb-4 p-4 bg-gray-50 rounded flex flex-wrap gap-4 justify-between items-center">
         <div className="flex gap-2">
           <span className="font-bold mr-2">Templates:</span>

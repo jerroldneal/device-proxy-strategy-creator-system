@@ -1,0 +1,5 @@
+UI Updated:
+- Moved "Open Positions" below "Strategies".
+- Renamed "Open Positions" to "Positions".
+- Added "Active" and "Inactive" tabs to "Positions".
+- "Positions" section now collapses by default if there are no active positions on load.
