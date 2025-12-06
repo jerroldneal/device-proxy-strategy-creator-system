@@ -16,6 +16,15 @@ interface Strategy {
     targetPrice?: string | number;
     strategyName?: string;
   };
+  status?: {
+    triggers?: Array<{
+      metric: string;
+      target: number;
+      current: number;
+      condition: string;
+      action: string;
+    }>;
+  };
 }
 
 export default function ActiveStrategiesList() {
@@ -150,13 +159,35 @@ export default function ActiveStrategiesList() {
                     const normalizedSymbol = normalizeSymbol(s.config.symbol);
                     const currentPrice = tickers[normalizedSymbol] || tickers[s.config.symbol];
 
-                    const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) :
-                                         s.config.targetPrice !== undefined ? parseFloat(s.config.targetPrice as string) : null;
+                    // Determine Triggers
+                    let triggerDisplay = '-';
+                    let currentDisplay = '-';
+                    let distanceDisplay = '-';
 
-                    let distance = '-';
-                    if (currentPrice && triggerPrice) {
-                      const dist = Math.abs((currentPrice - triggerPrice) / currentPrice * 100);
-                      distance = `${dist.toFixed(2)}%`;
+                    if (s.status?.triggers && s.status.triggers.length > 0) {
+                      // Use dynamic triggers from backend
+                      triggerDisplay = s.status.triggers.map(t => `${t.metric} ${t.condition} ${t.target}`).join(', ');
+                      currentDisplay = s.status.triggers.map(t => `${t.metric}: ${t.current !== undefined ? t.current.toFixed(2) : '?'}`).join(', ');
+                      distanceDisplay = s.status.triggers.map(t => {
+                        if (t.current !== undefined && t.target !== undefined) {
+                           const dist = Math.abs(t.current - t.target);
+                           return `${dist.toFixed(2)}`;
+                        }
+                        return '?';
+                      }).join(', ');
+                    } else {
+                      // Fallback to Price Logic
+                      const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) :
+                                           s.config.targetPrice !== undefined ? parseFloat(s.config.targetPrice as string) : null;
+
+                      if (triggerPrice) {
+                        triggerDisplay = triggerPrice.toFixed(4);
+                        if (currentPrice) {
+                          currentDisplay = currentPrice.toFixed(4);
+                          const dist = Math.abs((currentPrice - triggerPrice) / currentPrice * 100);
+                          distanceDisplay = `${dist.toFixed(2)}%`;
+                        }
+                      }
                     }
 
                     return (
@@ -172,14 +203,14 @@ export default function ActiveStrategiesList() {
                         </span>
                       </td>
                       <td className="py-2 px-4 border-b">{s.config.size}</td>
-                      <td className="py-2 px-4 border-b">
-                        {triggerPrice ? triggerPrice.toFixed(4) : '-'}
+                      <td className="py-2 px-4 border-b text-sm">
+                        {triggerDisplay}
                       </td>
-                      <td className="py-2 px-4 border-b">
-                        {currentPrice ? currentPrice.toFixed(4) : '-'}
+                      <td className="py-2 px-4 border-b text-sm">
+                        {currentDisplay}
                       </td>
-                      <td className="py-2 px-4 border-b">
-                        {distance}
+                      <td className="py-2 px-4 border-b text-sm">
+                        {distanceDisplay}
                       </td>
                       <td className="py-2 px-4 border-b">
                         {s.running ? (
