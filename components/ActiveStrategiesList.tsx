@@ -142,10 +142,17 @@ export default function ActiveStrategiesList() {
                   </tr>
                 ) : (
                   displayedStrategies.map((s) => {
-                    const currentPrice = tickers[s.config.symbol];
-                    const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) : 
+                    // Normalize symbol for ticker lookup (e.g. BTC/USDT:USDT -> BTC-USDT)
+                    const normalizeSymbol = (sym: string) => {
+                      if (!sym) return '';
+                      return sym.split(':')[0].replace('/', '-');
+                    };
+                    const normalizedSymbol = normalizeSymbol(s.config.symbol);
+                    const currentPrice = tickers[normalizedSymbol] || tickers[s.config.symbol];
+
+                    const triggerPrice = s.config.stopPrice !== undefined ? parseFloat(s.config.stopPrice as string) :
                                          s.config.targetPrice !== undefined ? parseFloat(s.config.targetPrice as string) : null;
-                    
+
                     let distance = '-';
                     if (currentPrice && triggerPrice) {
                       const dist = Math.abs((currentPrice - triggerPrice) / currentPrice * 100);
