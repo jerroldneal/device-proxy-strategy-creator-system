@@ -253,6 +253,10 @@ export default function ActiveStrategiesList() {
                             <td colSpan={9} className="p-0 border-b">
                                 <div className="bg-gray-50 p-4 border-l-4 border-blue-500">
                                     <h4 className="font-bold text-gray-700 mb-2">Strategy Breakdown</h4>
+                                    {/* Debug Info */}
+                                    <pre className="text-xs bg-gray-100 p-2 mb-2 overflow-auto max-h-32">
+                                        {JSON.stringify(s.status, null, 2)}
+                                    </pre>
                                     {hasComplexTriggers && s.status?.triggers ? (
                                         <div className="grid grid-cols-1 gap-4">
                                             {Object.entries(s.status.triggers.reduce((acc, t) => {

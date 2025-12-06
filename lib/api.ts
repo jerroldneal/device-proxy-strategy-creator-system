@@ -6,6 +6,7 @@ export const api = {
       console.log(`[API] GET ${API_BASE_URL}${endpoint}`);
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         mode: 'cors',
+        cache: 'no-store',
         headers: {
           'Accept': 'application/json',
         }
@@ -30,6 +31,7 @@ export const api = {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         mode: 'cors',
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
