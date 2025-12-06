@@ -145,13 +145,33 @@ export default function QuickActionModal({ type, initialValues, onClose }: Quick
             <label className="block text-sm font-bold mb-1">
               {type === 'sl' ? 'Stop %' : type === 'tp' ? 'Profit %' : 'Trailing %'}
             </label>
-            <input
-              type="text"
-              value={percentage}
-              onChange={(e) => setPercentage(e.target.value)}
-              className="w-full border p-2 rounded"
-              placeholder="e.g. 1.0"
-            />
+            <div className="flex items-center border rounded">
+              <input
+                type="number"
+                step="0.01"
+                value={percentage}
+                onChange={(e) => setPercentage(e.target.value)}
+                className="flex-1 p-2 outline-none rounded-l"
+                placeholder="1.0"
+              />
+              <span className="px-2 text-gray-500">%</span>
+              <div className="flex flex-col border-l">
+                <button 
+                  onClick={() => setPercentage((prev) => (parseFloat(prev || '0') + 0.01).toFixed(2))}
+                  className="px-3 py-0.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-b"
+                  type="button"
+                >
+                  ▲
+                </button>
+                <button 
+                  onClick={() => setPercentage((prev) => Math.max(0, parseFloat(prev || '0') - 0.01).toFixed(2))}
+                  className="px-3 py-0.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold"
+                  type="button"
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
