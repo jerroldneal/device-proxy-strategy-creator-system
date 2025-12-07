@@ -55,6 +55,16 @@ export default function ActionArsenal() {
   const handleExecute = async () => {
     if (!selectedAction) return;
 
+    // Client-side validation
+    if (selectedAction.parameters) {
+      for (const param of selectedAction.parameters) {
+        if (param.required && !formValues[param.name]) {
+          setExecutionResult({ error: `Missing required parameter: ${param.name}` });
+          return;
+        }
+      }
+    }
+
     try {
       const res = await api.post('/actions/execute', {
         id: selectedAction.id,
