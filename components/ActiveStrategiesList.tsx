@@ -280,11 +280,21 @@ export default function ActiveStrategiesList() {
                                                                 <tr key={idx} className="border-t border-gray-100">
                                                                     <td className="py-1 pr-2">{t.description || t.metric}</td>
                                                                     <td className="py-1 pr-2">{t.target}</td>
-                                                                    <td className="py-1 pr-2 font-mono">{t.current !== undefined ? t.current.toFixed(2) : '?'}</td>
+                                                                    <td className="py-1 pr-2 font-mono">
+                                                                      {(() => {
+                                                                        const val = parseFloat(String(t.current));
+                                                                        return !isNaN(val) ? val.toFixed(2) : '?';
+                                                                      })()}
+                                                                    </td>
                                                                     <td className="py-1 font-mono">
-                                                                        {t.current !== undefined && t.target !== undefined
-                                                                            ? Math.abs(t.current - t.target).toFixed(2)
-                                                                            : '-'}
+                                                                        {(() => {
+                                                                           const curr = parseFloat(String(t.current));
+                                                                           const tgt = parseFloat(String(t.target));
+                                                                           if (!isNaN(curr) && !isNaN(tgt)) {
+                                                                               return Math.abs(curr - tgt).toFixed(2);
+                                                                           }
+                                                                           return '-';
+                                                                        })()}
                                                                     </td>
                                                                 </tr>
                                                             ))}

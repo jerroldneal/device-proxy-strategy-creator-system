@@ -10,6 +10,7 @@ interface Position {
   entryPrice: string;
   markPrice: string;
   unrealizedPnl: string;
+  percentage?: number;
 }
 
 interface OpenPositionsListProps {
@@ -41,7 +42,8 @@ export default function OpenPositionsList({ onAction }: OpenPositionsListProps) 
           size: p.contracts || p.size || p.amount,
           entryPrice: parseFloat(p.entryPrice || p.avgPrice || '0').toFixed(4),
           markPrice: parseFloat(p.markPrice || '0').toFixed(4),
-          unrealizedPnl: p.unrealizedPnl || p.upl || '0'
+          unrealizedPnl: p.unrealizedPnl || p.upl || '0',
+          percentage: (p.percentage !== undefined && p.percentage !== null) ? parseFloat(p.percentage) : undefined
         };
       });
 
@@ -138,7 +140,11 @@ export default function OpenPositionsList({ onAction }: OpenPositionsListProps) 
                         <td className="py-2 px-4 border-b">{p.size}</td>
                         <td className="py-2 px-4 border-b">{p.entryPrice}</td>
                         <td className="py-2 px-4 border-b">{p.markPrice}</td>
-                        <td className={`py-2 px-4 border-b font-bold ${pnlColor}`}>{p.unrealizedPnl}</td>
+                        <td className={`py-2 px-4 border-b font-bold ${pnlColor}`}>
+                          {p.percentage !== undefined && !isNaN(p.percentage)
+                            ? `${p.percentage.toFixed(2)}%`
+                            : parseFloat(p.unrealizedPnl).toFixed(4)}
+                        </td>
                         <td className="py-2 px-4 border-b flex gap-2">
                           <button
                             onClick={() => onAction('sl', { symbol: p.symbol, positionSide: p.side, size: p.size, entryPrice: p.entryPrice })}
