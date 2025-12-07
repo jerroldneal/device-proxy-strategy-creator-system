@@ -8,9 +8,10 @@ export default function PineScriptInference() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Execution State
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  // We now support multiple rows of inputs (Batch Execution)
+  const [inputRows, setInputRows] = useState<Record<string, string>[]>([]);
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [executing, setExecuting] = useState(false);
 
@@ -19,7 +20,7 @@ export default function PineScriptInference() {
     setError(null);
     setResult(null);
     setExecutionResult(null);
-    setInputValues({});
+    setInputRows([]);
 
     try {
       const response = await api.post('/pinescript/infer', { code: input });
@@ -27,14 +28,14 @@ export default function PineScriptInference() {
         throw new Error(response.error);
       }
       setResult(response);
-      
-      // Initialize input values
+
+      // Initialize first row of input values
       if (response.inputs) {
         const initialValues: Record<string, string> = {};
         Object.keys(response.inputs).forEach(key => {
           initialValues[key] = '';
         });
-        setInputValues(initialValues);
+        setInputRows([initialValues]);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during analysis.');
@@ -43,13 +44,36 @@ export default function PineScriptInference() {
     }
   };
 
+  const handleAddRow = () => {
+    if (!result || !result.inputs) return;
+    const newRow: Record<string, string> = {};
+    Object.keys(result.inputs).forEach(key => {
+      // Copy from last row for convenience, or empty
+      const lastRow = inputRows[inputRows.length - 1];
+      newRow[key] = lastRow ? lastRow[key] : '';
+    });
+    setInputRows([...inputRows, newRow]);
+  };
+
+  const handleRemoveRow = (index: number) => {
+    const newRows = [...inputRows];
+    newRows.splice(index, 1);
+    setInputRows(newRows);
+  };
+
+  const handleInputChange = (rowIndex: number, key: string, value: string) => {
+    const newRows = [...inputRows];
+    newRows[rowIndex] = { ...newRows[rowIndex], [key]: value };
+    setInputRows(newRows);
+  };
+
   const handleExecute = async () => {
     setExecuting(true);
     setExecutionResult(null);
     try {
-      const response = await api.post('/pinescript/execute', { 
+      const response = await api.post('/pinescript/execute', {
         code: input,
-        inputs: inputValues
+        inputsList: inputRows
       });
       if (response.error) throw new Error(response.error);
       setExecutionResult(response);
@@ -63,9 +87,9 @@ export default function PineScriptInference() {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-xl font-bold mb-4">PineScript Inference Engine</h3>
+        <h3 className="text-xl font-bold mb-4">PineScript Inference Engine (Batch Mode)</h3>
         <p className="text-gray-600 mb-4">
-          Paste your PineScript code below. The AI will analyze it and extract the necessary inputs, values, and actions required to execute the strategy.
+          Paste your PineScript code below. The AI will analyze it. Then, enter multiple rows of data to simulate a time-series execution.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -145,67 +169,101 @@ export default function PineScriptInference() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h4 className="text-lg font-bold mb-4">Simulate Execution</h4>
-            <p className="text-gray-600 mb-4">Enter values for the identified inputs to simulate a single interval pass.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {Object.keys(inputValues).map((key) => (
-                <div key={key} className="flex flex-col">
-                  <label className="font-semibold text-sm mb-1 text-gray-700">{key}</label>
-                  <input
-                    type="text"
-                    className="p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={`Value for ${key}`}
-                    value={inputValues[key]}
-                    onChange={(e) => setInputValues(prev => ({ ...prev, [key]: e.target.value }))}
-                  />
-                  <span className="text-xs text-gray-500 mt-1 truncate">{result.inputs[key]}</span>
-                </div>
-              ))}
+          <div className="bg-white p-6 rounded-lg shadow-sm border overflow-x-auto">
+            <h4 className="text-lg font-bold mb-4">Batch Simulation Data</h4>
+            <p className="text-gray-600 mb-4">Add rows to simulate multiple time steps.</p>
+
+            <table className="min-w-full border-collapse border border-gray-200">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border p-2 text-left w-10">#</th>
+                  {Object.keys(result.inputs).map(key => (
+                    <th key={key} className="border p-2 text-left">{key}</th>
+                  ))}
+                  <th className="border p-2 text-center w-20">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inputRows.map((row, idx) => (
+                  <tr key={idx}>
+                    <td className="border p-2 text-center text-gray-500">{idx + 1}</td>
+                    {Object.keys(result.inputs).map(key => (
+                      <td key={key} className="border p-2">
+                        <input
+                          type="text"
+                          className="w-full p-1 border rounded"
+                          value={row[key] || ''}
+                          onChange={(e) => handleInputChange(idx, key, e.target.value)}
+                        />
+                      </td>
+                    ))}
+                    <td className="border p-2 text-center">
+                      <button
+                        onClick={() => handleRemoveRow(idx)}
+                        className="text-red-600 hover:text-red-800 font-bold"
+                        title="Remove Row"
+                      >
+                        &times;
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="mt-4 flex gap-4">
+              <button
+                onClick={handleAddRow}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800 font-semibold"
+              >
+                + Add Row
+              </button>
+              <button
+                onClick={handleExecute}
+                disabled={executing || inputRows.length === 0}
+                className={`px-6 py-2 rounded-lg font-bold text-white transition-colors ${
+                  executing || inputRows.length === 0
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {executing ? 'Simulating Batch...' : 'Run Batch Simulation'}
+              </button>
             </div>
 
-            <button
-              onClick={handleExecute}
-              disabled={executing}
-              className={`px-6 py-2 rounded-lg font-bold text-white transition-colors ${
-                executing
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {executing ? 'Simulating...' : 'Run Simulation'}
-            </button>
-
-            {executionResult && (
-              <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
-                <h5 className="font-bold text-gray-800 mb-3">Simulation Result</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h6 className="font-semibold text-sm text-gray-600 mb-2">Calculated Values</h6>
-                    <pre className="bg-white p-3 rounded border text-sm overflow-auto">
-                      {JSON.stringify(executionResult.calculatedValues, null, 2)}
-                    </pre>
-                  </div>
-                  <div>
-                    <h6 className="font-semibold text-sm text-gray-600 mb-2">Triggered Actions</h6>
-                    {executionResult.triggeredActions && executionResult.triggeredActions.length > 0 ? (
-                      <ul className="bg-white p-3 rounded border text-sm text-red-600 font-bold">
-                        {executionResult.triggeredActions.map((action: string, idx: number) => (
-                          <li key={idx}>{action}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="bg-white p-3 rounded border text-sm text-gray-500 italic">No actions triggered</div>
-                    )}
-                  </div>
-                </div>
-                {executionResult.logicTrace && (
-                  <div className="mt-4">
-                    <h6 className="font-semibold text-sm text-gray-600 mb-2">Logic Trace</h6>
-                    <p className="text-sm text-gray-700 bg-white p-3 rounded border">{executionResult.logicTrace}</p>
-                  </div>
-                )}
+            {executionResult && executionResult.results && (
+              <div className="mt-8">
+                <h5 className="font-bold text-gray-800 mb-3">Simulation Results</h5>
+                <table className="min-w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="border p-2 text-left w-10">#</th>
+                      <th className="border p-2 text-left">Calculated Values</th>
+                      <th className="border p-2 text-left">Triggered Actions</th>
+                      <th className="border p-2 text-left">Logic Trace</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executionResult.results.map((res: any, idx: number) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="border p-2 text-center font-bold">{idx + 1}</td>
+                        <td className="border p-2 font-mono text-sm">
+                          {JSON.stringify(res.calculatedValues)}
+                        </td>
+                        <td className="border p-2">
+                          {res.triggeredActions && res.triggeredActions.length > 0 ? (
+                            <span className="text-red-600 font-bold">{res.triggeredActions.join(', ')}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="border p-2 text-xs text-gray-600 max-w-xs truncate" title={res.logicTrace}>
+                          {res.logicTrace}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
