@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useToast } from './ToastContext';
 
 interface Strategy {
   id: string;
@@ -25,10 +26,12 @@ interface Strategy {
       action: string;
       description?: string;
     }>;
+    logs?: string[];
   };
 }
 
 export default function ActiveStrategiesList() {
+  const { showToast } = useToast();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [tickers, setTickers] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -75,9 +78,10 @@ export default function ActiveStrategiesList() {
     if (!confirm('Are you sure you want to cancel this strategy?')) return;
     try {
       await api.post('/maker/stop', { id });
+      showToast('Strategy stopped successfully', 'success');
       fetchStrategies();
     } catch (err) {
-      alert('Failed to stop strategy');
+      showToast('Failed to stop strategy', 'error');
     }
   };
 

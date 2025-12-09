@@ -12,6 +12,7 @@ import ActiveStrategiesList from './ActiveStrategiesList';
 import OpenPositionsList from './OpenPositionsList';
 import ActionArsenal from './ActionArsenal';
 import PineScriptInference from './PineScriptInference';
+import StrategyOrchestration from './StrategyOrchestration';
 import { api } from '../lib/api';
 
 export default function AutoMultiIndicators() {
@@ -75,7 +76,7 @@ export default function AutoMultiIndicators() {
       <h2 className="text-2xl font-bold mb-4">Auto Multi-Indicators (AI Analysis)</h2>
 
       <div className="flex space-x-2 mb-4 border-b pb-2">
-        {['editor', 'results', 'run', 'trading', 'arsenal', 'inference', 'guide', 'system'].map((tab) => (
+        {['editor', 'results', 'run', 'trading', 'arsenal', 'inference', 'orchestration', 'guide', 'system'].map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 rounded ${
@@ -161,6 +162,7 @@ export default function AutoMultiIndicators() {
         )}
         {activeTab === 'arsenal' && <ActionArsenal />}
         {activeTab === 'inference' && <PineScriptInference />}
+        {activeTab === 'orchestration' && <StrategyOrchestration />}
         {activeTab === 'guide' && <Guide />}
         {activeTab === 'system' && (
           <div>
